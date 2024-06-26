@@ -1,18 +1,36 @@
-# load the large language model file
-from llama_cpp import Llama
-LLM = Llama(model_path="./llama-2-7b-chat.ggmlv3.q8_0.bin",verbose=True, n_ctx=2048)
-print('model loaded')
-# create a text prompt
-text="Good morning sir, I am Afan speaking from Bajaj housing centralised team.  I am talking to Kishan ji.  Which language are you comfortable with sir?  Which language are you comfotable with sir?  Kannada  Kannada language, Bangalore sir?  Yes  This is a home loan balance transfer offer from Bajaj sir.  If you transfer your home loan in Bajaj, there will be MI savings plus ODI facility top-up provided to you, sir.  So you can easily close your personal loan and any other loan which is on hand, interested by this top-up, sir.  So can I connect my language executive to talk with you, sir? He will explain you in the offer, sir.  So this is a home loan balance transfer offer, sir.  Home loan balance?  Transfer.  Yes sir. Please be online sir. Connecting a call with your Bangalore executive. He will explain your language sir. Kannada language.  Please be online sir  Kannada language?  Yes sir.  Kannada, Kannada  Hello  Hello. Appointeer from CCTM. Language customer sir.  Connected sir  Hello. Hello.  Sir, do you have a housing loan?  Yes, I have a housing loan.  Which bank is it?  Yes, I have.  The one you called, the loan is balanced and the top of offer is there.  That loan is transferred.  Transferred to Bajaj.  And then they give extra top of offer.  As a top of loan, they give the home loan and then taback and support it.  Both top and home loans get a separate account.  We already have home loan and top-ups.  So, both the loan and top up loan gets a separate account.  When I set the home loan and top up loan, it must get the sub-account.  What is your home loan and top up?  So if we are to have a top up loan on top of the home support loan, since it is a top up loan, only that doesn'ties up a top of and taback.  There must be a taback and taback separate account.  We already have home and top-up loans.  Yes, two loans. You have a home loan and a top-up in SPL, right?  Yes, yes.  Home loan is booked in the home loan. Home loan top-up and the top-up we give is booked in the top-up.  How can we help with that?  Hello.  You have a top-up.  Is this a salary or self-employed?  Who?  Is it a salary or self employed?  Hello, you have a top- up. Did they give you more loans?  Yes, we have given an extra top-up. Both the loans have been closed from our side, so we have given an additional top-up.  What is the rate of interest?  Do you sell or sell your salary? Do you do business or do you sell your salary?  I sell my salary.  How much is the loan?  The remaining amount is Rs.100.  You have paid Rs.100, right?  If both of them are good, will it be 40 lakhs?  You will get 10 lakhs as top up. Both of them will be 9.9%  What will be the rate of interest?  That is 9.9  9.59?  Yes  How much will be the top up rate?  Same for both  How will it be same for both?  It is the same rate for VT and SL.  It is the same for the top up.  Is it fixed or is it plugged in?  It is floating as per RBA.  It is floating.  Okay.  If there is no need, we will solve it.  Okay.  You can take it to the customer.  Okay sir"
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_groq import ChatGroq
 
-prompt = "This is a conversation between a customer and Bajaj Finance Company. Extract the following information from the conversation if text is not present in converstion then leav blank  and provide it in valid JSON format: greeting (good morning, hello, hi, good evening, good afternoon), customer name, customer bank name (if mentioned), and home loan amount. \
-          Conversation: {text} \
-          Details to include: customer name, customer bank name, home loan amount. \
-          Answer: "
+# Initialize the ChatGroq model
+chat = ChatGroq(temperature=0, groq_api_key="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", model_name="mixtral-8x7b-32768")
 
-        
-# generate a response (takes several seconds)
-output = LLM(prompt)
+# Define the system and human prompt
+system = "You are a helpful assistant."
+human = """
+This is a conversation between a customer and Bajaj Finance Company. Extract the following information from the conversation and provide it in valid JSON format: greeting (good morning, hello, hi, good evening, good afternoon), customer name, customer bank name (if mentioned), and home loan amount.
+Conversation: {text}
+Details to include: customer name, customer bank name, home loan amount.
+Answer:
+"""
 
-# display the response
-print(output["choices"][0]["text"])
+# Create the ChatPromptTemplate
+prompt = ChatPromptTemplate.from_messages([("system", system), ("human", human)])
+
+# Define the text to be analyzed
+text = ("I'm talking to Mr. Priyanka from Bajaj Housing Finance Company. Mr. Ashutosh had asked for loan through our application. "
+        "I had called him regarding this. You can search for properties to buy. How many lakhs do you require? You are talking to Latur from out of city. "
+        "Where do you want to buy the property? How do you feel comfortable in Marathi? It's okay. If you have any 5 Lakhs requirement for construction, "
+        "where exactly is your plot? Do you have land or property in the Gram Panchayat? I don't have land. I have agriculture property. Okay. But if you want to do construction, "
+        "you have land in the Gram Panchayat, right? Okay. Can you please tell me the PIN code for construction of your area? What do you all do? What is your job? How much salary do you get? "
+        "Do you serve your teachers? How much salary do you get? You get 32,000 How much do you get? Do you get 16,000? It doesn't matter Today I want to discuss with you about our rights, "
+        "do you have 5 lakhs? No problem, I have my income source with me. Do you have a shop act license or an ITR? Do you pay the ITR? If you don't have an ITR, do you have a current account or income proof? "
+        "Do you have a shop act license? It's okay. I will discuss it with Adhikara. If it's possible for me, I will call you back. Thank you.")
+
+# Combine the prompt and the model
+chain = prompt | chat
+
+# Invoke the model with the given text
+response = chain.invoke({"text": text})
+
+# Display the response
+print(response)
